@@ -1,0 +1,109 @@
+<?php
+
+namespace OpenPGP;
+
+use Exception;
+use OpenPGP\Packets\Signature;
+
+class S2k
+{
+    public $type, $hash_algorithm, $salt, $count;
+
+    function __construct($salt = 'BADSALT', $hash_algorithm = 10, $count = 65536, $type = 3)
+    {
+        $this->type           = $type;
+        $this->hash_algorithm = $hash_algorithm;
+        $this->salt           = $salt;
+        $this->count          = $count;
+    }
+
+    static function parse(&$input)
+    {
+        $s2k = new self();
+        switch ($s2k->type = ord($input[0])) {
+            case 0:
+                $s2k->hash_algorithm = ord($input[1]);
+                $input               = substr($input, 2);
+                break;
+            case 1:
+                $s2k->hash_algorithm = ord($input[1]);
+                $s2k->salt           = substr($input, 2, 8);
+                $input               = substr($input, 10);
+                break;
+            case 3:
+                $s2k->hash_algorithm = ord($input[1]);
+                $s2k->salt           = substr($input, 2, 8);
+                $s2k->count          = Pgp::decode_s2k_count(ord($input[10]));
+                $input               = substr($input, 11);
+                break;
+        }
+
+        return $s2k;
+    }
+
+    function to_bytes()
+    {
+        $bytes = chr($this->type);
+        switch ($this->type) {
+            case 0:
+                $bytes .= chr($this->hash_algorithm);
+                break;
+            case 1:
+                if (strlen($this->salt) != 8) {
+                    throw new Exception("Invalid salt length");
+                }
+                $bytes .= chr($this->hash_algorithm);
+                $bytes .= $this->salt;
+                break;
+            case 3:
+                if (strlen($this->salt) != 8) {
+                    throw new Exception("Invalid salt length");
+                }
+                $bytes .= chr($this->hash_algorithm);
+                $bytes .= $this->salt;
+                $bytes .= chr(Pgp::encode_s2k_count($this->count));
+                break;
+        }
+
+        return $bytes;
+    }
+
+    function raw_hash($s)
+    {
+        return hash(strtolower(Signature::$hash_algorithms[$this->hash_algorithm]), $s, true);
+    }
+
+    function sized_hash($s, $size)
+    {
+        $hash = $this->raw_hash($s);
+        while (strlen($hash) < $size) {
+            $s    = "\0" . $s;
+            $hash .= $this->raw_hash($s);
+        }
+
+        return substr($hash, 0, $size);
+    }
+
+    function iterate($s)
+    {
+        if (strlen($s) >= $this->count) {
+            return $s;
+        }
+        $s = str_repeat($s, ceil($this->count / strlen($s)));
+
+        return substr($s, 0, $this->count);
+    }
+
+    function make_key($pass, $size)
+    {
+        switch ($this->type) {
+            case 0:
+                return $this->sized_hash($pass, $size);
+            case 1:
+                return $this->sized_hash($this->salt . $pass, $size);
+            case 3:
+                return $this->sized_hash($this->iterate($this->salt . $pass), $size);
+        }
+    }
+}
+

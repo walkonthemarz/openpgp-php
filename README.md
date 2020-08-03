@@ -1,11 +1,11 @@
-[![Build Status](https://travis-ci.org/singpolyma/openpgp-php.svg?branch=master)](https://travis-ci.org/singpolyma/openpgp-php)
+[![Build Status](https://travis-ci.org/walkonthemarz/openpgp-php.svg?branch=master)](https://travis-ci.org/walkonthemarz/openpgp-php)
 
 OpenPGP.php: OpenPGP for PHP
 ============================
 
 This is a pure-PHP implementation of the OpenPGP Message Format (RFC 4880).
 
-* <https://github.com/singpolyma/openpgp-php>
+* <https://github.com/walkonthemarz/openpgp-php>
 
 About OpenPGP
 -------------

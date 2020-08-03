@@ -1,27 +1,32 @@
-<phpunit bootstrap="tests/bootstrap.php">
+<phpunit bootstrap="vendor/autoload.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         stopOnFailure="false">
   <testsuites>
     <testsuite name="Serialization">
-      <file>tests/suite.php</file>
+      <file>tests/Serialization.php</file>
     </testsuite>
 
     <testsuite name="Fingerprint">
-      <file>tests/suite.php</file>
+      <file>tests/Fingerprint.php</file>
     </testsuite>
 
     <testsuite name="MessageVerification">
-      <file>tests/phpseclib_suite.php</file>
+      <file>tests/MessageVerification.php</file>
     </testsuite>
 
     <testsuite name="KeyVerification">
-      <file>tests/phpseclib_suite.php</file>
+      <file>tests/KeyVerification.php</file>
     </testsuite>
 
     <testsuite name="Decryption">
-      <file>tests/phpseclib_suite.php</file>
+      <file>tests/Decryption.php</file>
     </testsuite>
 
     <testsuite name="Encryption">
-      <file>tests/phpseclib_suite.php</file>
+      <file>tests/Encryption.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

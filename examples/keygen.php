@@ -1,14 +1,16 @@
 <?php
 
-@include_once dirname(__FILE__).'/../vendor/autoload.php';
-require_once dirname(__FILE__).'/../lib/openpgp.php';
-require_once dirname(__FILE__).'/../lib/openpgp_crypt_rsa.php';
+require_once( dirname(__FILE__) . '/../vendor/autoload.php');
 
-$rsa = new \phpseclib\Crypt\RSA();
+use OpenPGP\Packets\PublicKey;
+use OpenPGP\Packets\SecretKey;
+use OpenPGP\Packets\UserID;
+
+$rsa = new phpseclib\Crypt\RSA();
 $k = $rsa->createKey(512);
 $rsa->loadKey($k['privatekey']);
 
-$nkey = new OpenPGP_SecretKeyPacket(array(
+$nkey = new SecretKey(array(
    'n' => $rsa->modulus->toBytes(),
    'e' => $rsa->publicExponent->toBytes(),
    'd' => $rsa->exponent->toBytes(),
@@ -17,16 +19,16 @@ $nkey = new OpenPGP_SecretKeyPacket(array(
    'u' => $rsa->coefficients[2]->toBytes()
 ));
 
-$uid = new OpenPGP_UserIDPacket('Test <test@example.com>');
+$uid = new UserID('Test <test@example.com>');
 
-$wkey = new OpenPGP_Crypt_RSA($nkey);
+$wkey = new OpenPGP\Crypt\RSA($nkey);
 $m = $wkey->sign_key_userid(array($nkey, $uid));
 
 // Serialize private key
-print $m->to_bytes();
+print OpenPGP\Pgp::enarmor($m->to_bytes(), \OpenPGP\Pgp::MARKER_PRIVATE_KEY);
 
 // Serialize public key message
 $pubm = clone($m);
-$pubm[0] = new OpenPGP_PublicKeyPacket($pubm[0]);
+$pubm[0] = new PublicKey($pubm[0]);
 
 $public_bytes = $pubm->to_bytes();

@@ -1,16 +1,17 @@
 <?php
+require_once( dirname(__FILE__) . '/../vendor/autoload.php');
 
-@include_once dirname(__FILE__).'/../vendor/autoload.php';
-require_once dirname(__FILE__).'/../lib/openpgp.php';
-require_once dirname(__FILE__).'/../lib/openpgp_crypt_rsa.php';
-require_once dirname(__FILE__).'/../lib/openpgp_crypt_symmetric.php';
+use OpenPGP\Message;
+use OpenPGP\Packets\LiteralData;
+use OpenPGP\Crypt\Symmetric;
+use OpenPGP\Crypt\RSA;
 
-$key = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/../tests/data/helloKey.gpg'));
-$data = new OpenPGP_LiteralDataPacket('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
-$encrypted = OpenPGP_Crypt_Symmetric::encrypt($key, new OpenPGP_Message(array($data)));
+$key = Message::parse(file_get_contents(dirname(__FILE__) . '/../tests/data/helloKey.gpg'));
+$data = new LiteralData('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
+$encrypted = Symmetric::encrypt($key, new Message(array($data)));
 
 // Now decrypt it with the same key
-$decryptor = new OpenPGP_Crypt_RSA($key);
+$decryptor = new RSA($key);
 $decrypted = $decryptor->decrypt($encrypted);
 
 var_dump($decrypted);
